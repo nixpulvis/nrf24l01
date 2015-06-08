@@ -3,7 +3,7 @@
 #include <avr/io.h>
 #include <util/delay.h>
 #include <avr.h>
-#include "../lib/nRF24L01p.h"
+#include <nrf24L01.h>
 
 // Forward declarations.
 void assert(const char *name, bool test);

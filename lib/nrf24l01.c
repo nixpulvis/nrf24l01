@@ -1,4 +1,4 @@
-#include "nrf24l01p.h"
+#include "nrf24l01.h"
 
 //
 // nRF24L01p_init implementation.

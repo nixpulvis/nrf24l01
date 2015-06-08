@@ -13,27 +13,36 @@ BAUD ?= 115200
 # The location for our library archives and headers.
 PREFIX ?= /usr/local/avr
 
+# The name of this library.
+LIBRARY = nrf24l01
+
 ################################
 
 # Probably shouldn't touch these.
 
-# Source files, defaults to all.
-SRC = $(wildcard lib/*.c)
+# Source files.
+SRCS = $(wildcard lib/*.c)
+
+# Test files.
+TESTS = $(wildcard test/*.c)
+
+# Libraries needed.
+LIBS = -lavr -l$(LIBRARY)
 
 # The `gcc` executable.
 CC = avr-gcc
-C_FLAGS = -Wall -Werror -pedantic -Os -std=c99
+C_FLAGS = -Wall -Werror -pedantic -Os -std=c99 -DF_CPU=$(DF_CPU) -mmcu=$(MMCU)
 
 # C flags for compiling with this library.
 C_AVR_INCLUDES = -I$(PREFIX)/include
-C_AVR_LIBS = -L$(PREFIX)/lib -lavr
-
-# The `as` executable.
-AS = avr-as
+C_AVR_LIBS = -L$(PREFIX)/lib $(LIBS)
 
 # The `obj-copy` executable.
 OBJ_COPY = avr-objcopy
 OBJ_COPY_FLAGS = -O ihex -R .eeprom
+
+# The `ar` archiver executable.
+AR = avr-ar
 
 # The `avrdude` executable.
 AVRDUDE = avrdude
@@ -45,29 +54,45 @@ AVRSIZE_FLAGS = -C
 
 ################################
 
-# The default task is to build all projects.
-default: all
-
-################################
-
 # Pseudo rules.
 
 # These rules are not file based.
-.PHONY: flash serial size clean
+.PHONY: install uninstall test size clean flash serial
 
-# Mark the hex file as intermediate.
-.INTERMEDIATE: $(TARGET).hex $(TARGET).bin
+# Mark all .o files as intermediate.
+.INTERMEDIATE: $(SRCS:.c=.o) $(TARGET).hex $(TARGET).bin
 
 ################################
 
 # Utility rules (not file based).
 
-# TODO: Build the archive.
-all: $(PROJECTS:.c=.bin)
+# The default task is to build the library.
+default: all
 
-# TODO: Compile the tests against the installed lib.
-test: $(TESTS:.c=.hex)
-	@echo "foo"
+# Build the library.
+all: lib$(LIBRARY).a
+
+# Show information about target's size.
+size: lib$(LIBRARY).a
+	$(AVRSIZE) $(AVRSIZE_FLAGS) --mcu=$(MMCU) $<
+
+# Remove non-source files.
+clean:
+	find . -name '*.a' -or -name '*.o' -or -name '*.bin' -or -name '*.hex' | xargs rm
+
+# Install this library into PREFIX on this system.
+install: all
+	mkdir -p $(PREFIX)/lib $(PREFIX)/include
+	install lib$(LIBRARY).a $(PREFIX)/lib
+	install lib/$(LIBRARY).h $(PREFIX)/include
+
+# Remove this library from PREFIX on this system.
+uninstall:
+	rm $(PREFIX)/lib/lib$(LIBRARY).a $(PREFIX)/include/$(LIBRARY).h
+
+# Test this library (must be installed).
+test: $(TESTS:.c=.bin)
+	find . -name '*.bin' | xargs rm
 
 # Given a hex file using `avrdude` this target flashes the AVR with the
 # new program contained in the hex file.
@@ -79,25 +104,21 @@ flash: $(TARGET).hex
 serial:
 	screen $(PORT) $(BAUD)
 
-# Show information about target's size.
-size: $(TARGET).bin
-	$(AVRSIZE) $(AVRSIZE_FLAGS) --mcu=$(MMCU) $<
-
-# Remove non-source files.
-clean:
-	rm -rf $(wildcard **/*.o) $(wildcard **/*.bin) $(wildcard **/*.hex) $(wildcard test/**/*.hex)
-
 ################################
 
 # File rules.
 
-# .bin <- .o
-%.bin: %.o $(SRC:.c=.o)
-	$(CC) $(C_FLAGS) -mmcu=$(MMCU) $? -o $@ $(C_AVR_LIBS)
+# lib$(LIBRARY).a <- SRCS
+lib$(LIBRARY).a: $(SRCS:.c=.o)
+	$(AR) rcs $@ $?
 
 # .o <- .c
 %.o: %.c
-	$(CC) $(C_FLAGS) $(C_AVR_INCLUDES) -DF_CPU=$(DF_CPU) -mmcu=$(MMCU) -c $< -o $@
+	$(CC) $(C_FLAGS) $(C_AVR_INCLUDES) -c $< -o $@
+
+# .bin <- .o
+%.bin: %.o
+	$(CC) $(C_FLAGS) $(C_AVR_INCLUDES) $? -o $@ $(C_AVR_LIBS)
 
 # .hex <- .bin
 %.hex: %.bin
