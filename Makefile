@@ -1,5 +1,3 @@
-# Configuration variables.
-
 # Microcontroller options.
 DF_CPU ?= 16000000UL
 MMCU   ?= atmega328p
@@ -12,21 +10,23 @@ PORT ?= /dev/$(shell ls /dev/ | grep "tty\.usb" | sed -n 1p)
 # 57600  - Arduino Mini Pro
 BAUD ?= 115200
 
-# The language we're building from (C or Assembly), default is C.
-LANGUAGE ?= c
-
-# Libraries, defaults to all.
-C_LIBS = $(wildcard lib/*.c)
-LIBS ?= $(C_LIBS:.c=)
+# The location for our library archives and headers.
+PREFIX ?= /usr/local/avr
 
 ################################
 
 # Probably shouldn't touch these.
 
+# Source files, defaults to all.
+SRC = $(wildcard lib/*.c)
+
 # The `gcc` executable.
 CC = avr-gcc
 C_FLAGS = -Wall -Werror -pedantic -Os -std=c99
-C_HEADERS = -I.
+
+# C flags for compiling with this library.
+C_AVR_INCLUDES = -I$(PREFIX)/include
+C_AVR_LIBS = -L$(PREFIX)/lib -lavr
 
 # The `as` executable.
 AS = avr-as
@@ -42,12 +42,6 @@ AVRDUDE_FLAGS = -F -V -c arduino -p ATMEGA328P
 # The `avr-size` executable.
 AVRSIZE = avr-size
 AVRSIZE_FLAGS = -C
-
-# List of projects. TODO: ASM projects.
-PROJECTS = $(wildcard projects/*.c)
-
-# List of tests.
-TESTS = $(wildcard test/**/*.c)
 
 ################################
 
@@ -68,31 +62,23 @@ default: all
 
 # Utility rules (not file based).
 
-# Build all the projects.
-#
-# TODO: Build asm too!
-#
+# TODO: Build the archive.
 all: $(PROJECTS:.c=.bin)
 
+# TODO: Compile the tests against the installed lib.
 test: $(TESTS:.c=.hex)
 	@echo "foo"
 
-# flash
-#
 # Given a hex file using `avrdude` this target flashes the AVR with the
 # new program contained in the hex file.
 flash: $(TARGET).hex
 	$(AVRDUDE) $(AVRDUDE_FLAGS) -P $(PORT) -b $(BAUD) -U flash:w:$<
 
-# serial
-#
 # Open up a screen session for communication with the AVR
 # through it's on-board UART.
 serial:
 	screen $(PORT) $(BAUD)
 
-# size
-#
 # Show information about target's size.
 size: $(TARGET).bin
 	$(AVRSIZE) $(AVRSIZE_FLAGS) --mcu=$(MMCU) $<
@@ -106,26 +92,12 @@ clean:
 # File rules.
 
 # .bin <- .o
-ifeq ($(LANGUAGE), c)
-%.bin: %.o $(LIBS:=.o)
-	$(CC) $(C_FLAGS) -mmcu=$(MMCU) $? -o $@
-else
-%.bin: %.o
-	$(CC) -mmcu=$(MMCU) $? -o $@
-endif
+%.bin: %.o $(SRC:.c=.o)
+	$(CC) $(C_FLAGS) -mmcu=$(MMCU) $? -o $@ $(C_AVR_LIBS)
 
-# .asm <- .c
-%.asm: %.c
-	$(CC) -S $(C_HEADERS) $(C_FLAGS) -DF_CPU=$(DF_CPU) -mmcu=$(MMCU) -c $< -o $@
-
-# .o <- (.c | .asm)
-ifeq ($(LANGUAGE), c)
+# .o <- .c
 %.o: %.c
-	$(CC) $(C_HEADERS) $(C_FLAGS) -DF_CPU=$(DF_CPU) -mmcu=$(MMCU) -c $< -o $@
-else
-%.o: %.asm
-	$(AS) -mmcu=$(MMCU) -o $@ $<
-endif
+	$(CC) $(C_FLAGS) $(C_AVR_INCLUDES) -DF_CPU=$(DF_CPU) -mmcu=$(MMCU) -c $< -o $@
 
 # .hex <- .bin
 %.hex: %.bin
