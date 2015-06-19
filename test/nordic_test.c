@@ -2,7 +2,7 @@
 
 #include <avr/io.h>
 #include <util/delay.h>
-#include <avr.h>
+#include <avr/uart.h>
 #include <nrf24L01.h>
 
 // Forward declarations.
