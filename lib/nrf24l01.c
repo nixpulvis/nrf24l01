@@ -6,7 +6,7 @@
 int nRF24L01p_init(int ce, int irq)
 {
   // Start up the SPI bus.
-  spi_init();
+  spi_init(SPI_MASTER);
 
   // Set CE for output.
   DDRB |= _BV(DDB0);
