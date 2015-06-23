@@ -206,7 +206,7 @@
 #include <string.h>
 #include <avr/interrupt.h>
 #include <util/delay.h>
-#include <avr/spi.h>
+#include <avrm/spi.h>
 
 // nRF24L01p_init
 // Setup the default configuration for the device.

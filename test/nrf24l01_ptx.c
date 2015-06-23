@@ -3,7 +3,7 @@
  * about a year, and it's time to buckle down and figure it out.
  */
 
-#include <avr/uart.h>
+#include <avrm/uart.h>
 #include <nrf24L01.h>
 #include <util/delay.h>
 
