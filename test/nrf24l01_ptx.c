@@ -4,7 +4,7 @@
  */
 
 #include <avrm/uart.h>
-#include <nrf24L01.h>
+#include <nrf24l01.h>
 #include <util/delay.h>
 
 int main(void)

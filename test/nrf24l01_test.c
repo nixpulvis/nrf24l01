@@ -2,8 +2,8 @@
 
 #include <avr/io.h>
 #include <util/delay.h>
-#include <avr/uart.h>
-#include <nrf24L01.h>
+#include <avrm/uart.h>
+#include <nrf24l01.h>
 
 // Forward declarations.
 void assert(const char *name, bool test);
