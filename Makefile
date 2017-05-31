@@ -1,10 +1,8 @@
-PREFIX = /usr/local/Cellar
 LIBRARY = nrf24l01
-VERSION = 0.0.3
+VERSION = 0.0.4
+PREFIX = /usr/local/Cellar/$(LIBRARY)/$(VERSION)
 
-TARGET = $(PREFIX)/$(LIBRARY)/$(VERSION)
-AVRM = $(PREFIX)/avrm/0.0.4
-
-DEPENDENCIES = $(TARGET) $(AVRM)
+AVRM = /usr/local/Cellar/avrm/0.0.4
+DEPENDENCIES = $(PREFIX) $(AVRM)
 
 include $(AVRM)/Makefile
