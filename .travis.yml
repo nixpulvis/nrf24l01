@@ -10,5 +10,5 @@ install:
       - cd ~/avrm
       - sudo make install
 
-script: sudo make test
+script: sudo make install
 
