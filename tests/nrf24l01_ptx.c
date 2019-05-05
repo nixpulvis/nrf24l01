@@ -4,8 +4,8 @@
  */
 
 #include <avrm/uart.h>
+#include <avrm/delay.h>
 #include <nrf24l01.h>
-#include <util/delay.h>
 
 int main(void)
 {
@@ -13,7 +13,7 @@ int main(void)
   uart_init();
 
   // Wait for the nRF24L01p to be ready.
-  _delay_us(nRF24L01p_TIMING_INITIAL_US);
+  delay_us(nRF24L01p_TIMING_INITIAL_US);
 
   // Initialize the nRF24L01p.
   // TODO: Actual info for arguments.

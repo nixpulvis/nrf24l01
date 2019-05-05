@@ -1,7 +1,7 @@
 /* Tests for the nrf24l01p lib. */
 
 #include <avr/io.h>
-#include <util/delay.h>
+#include <avrm/delay.h>
 #include <avrm/uart.h>
 #include <nrf24l01.h>
 
@@ -14,7 +14,7 @@ int main(void)
   uart_init();
 
   // Wait for the nRF24L01p to be ready.
-  _delay_us(nRF24L01p_TIMING_INITIAL_US);
+  delay_us(nRF24L01p_TIMING_INITIAL_US);
 
   // Initialize the nRF24L01p.
   nRF24L01p_init(0, 0);
