@@ -205,7 +205,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <avr/interrupt.h>
-#include <util/delay.h>
+#include <avrm/delay.h>
 #include <avrm/spi.h>
 
 // nRF24L01p_init
